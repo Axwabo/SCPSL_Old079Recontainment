@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
@@ -11,6 +13,7 @@ namespace Old079Recontainment {
         public static Plugin079 Singleton { get; private set; }
         internal static Config079 Cfg => Singleton.Config;
         private Harmony _harmony;
+        internal static readonly Stopwatch OneMinuteStopwatch = new Stopwatch();
 
         public Plugin079() {
             Singleton = this;
@@ -27,6 +30,7 @@ namespace Old079Recontainment {
             }
 
             MapEvents.Generated += EventHandlers.MapGenerated;
+            Log.Info("Old SCP-079 recontainment enabled.");
         }
 
         public override void OnDisabled() {
@@ -35,23 +39,22 @@ namespace Old079Recontainment {
             _harmony.UnpatchAll();
         }
 
-        public override void OnReloaded() {
-            base.OnReloaded();
-        }
-
         public override string Name { get; } = "Old079Recontainment";
         public override string Author { get; } = "Axwabo";
         public override PluginPriority Priority { get; } = PluginPriority.Highest;
         public override Version Version { get; } = new Version(1, 0, 0, 0);
         public override Version RequiredExiledVersion { get; } = new Version(4, 2);
 
-        public static string CassieGlitchJam(string message, float glitchChance, float jamChance) {
+        public static string CassieGlitchJam(string message, float glitchChance, float jamChance,
+            bool skipSilence = true) {
             var strArray = message.Split(' ');
             var newWords = new List<string>();
             newWords.EnsureCapacity(strArray.Length);
             for (var index = 0; index < strArray.Length; ++index) {
-                newWords.Add(strArray[index]);
-                if (index >= strArray.Length - 1) continue;
+                var s = strArray[index];
+                newWords.Add(s);
+                if (index >= strArray.Length - 1 || s.Equals(".") && skipSilence)
+                    continue;
                 if (UnityEngine.Random.value < (double) glitchChance)
                     newWords.Add(".G" + UnityEngine.Random.Range(1, 7));
                 if (UnityEngine.Random.value < (double) jamChance)
@@ -60,6 +63,12 @@ namespace Old079Recontainment {
             }
 
             return newWords.Aggregate("", (current, newWord) => current + newWord + " ");
+        }
+
+        private static readonly Regex CassieNoiseRegex = new Regex("(jam_[0-9][0-9][0-9]_[0-9]|.g[0-9])( ?)");
+
+        public static string ClearCassieMessage(string s) {
+            return CassieNoiseRegex.Replace(s.ToLower(), "");
         }
     }
 }

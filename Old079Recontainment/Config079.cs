@@ -6,7 +6,7 @@ namespace Old079Recontainment {
         public bool IsEnabled { get; set; } = false;
 
         [Description(
-            "The extra generators to be added. Before Parabellum, the map had 5 generators, but there's only 3 now.")]
+            "The extra generators to be added. Before Parabellum, the map had 5 generators, but there's only 3 now by default.")]
         public int ExtraGenerators { get; set; } = 2;
 
         [Description(
