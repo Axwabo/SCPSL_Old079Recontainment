@@ -4,32 +4,45 @@ using System.Linq;
 using Axwabo.Util;
 using Exiled.API.Features;
 using HarmonyLib;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Old079Recontainment {
     [HarmonyPatch(typeof(NineTailedFoxAnnouncer), "Update")]
     internal static class CassiePatch {
         private static bool Prefix() {
-            if (Warhead.IsDetonated ||
-                Recontainer079.AllGenerators.Count > Recontainer079.AllGenerators.Count(g => g.Engaged))
+            if (!Plugin079.Cfg.AutoRecontain || !Plugin079.Cfg.IsEnabled ||
+                Recontainer079.AllGenerators.All(g => g.Engaged) ||
+                Warhead.Controller != null && Warhead.Controller.detonated)
                 return true;
-            var deaths = typeof(NineTailedFoxAnnouncer).Get<List<NineTailedFoxAnnouncer.ScpDeath>>("scpDeaths");
+            var deaths =
+                typeof(NineTailedFoxAnnouncer).StaticGet<List<NineTailedFoxAnnouncer.ScpDeath>>("scpDeaths");
             if (deaths.Count < 1)
                 return true;
+            if (Player.Get(RoleType.Scp079) == null)
+                return true;
             // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach (var t in deaths) {
-                var death = t;
-                if (death.scpSubjects.Any(r => r.roleId == RoleType.Scp079) || Plugin079
-                    .ClearCassieMessage(death.announcement).Contains("all scpsubjects have been secured"))
+            var list = new List<NineTailedFoxAnnouncer.ScpDeath>(deaths);
+            for (var i = 0; i < list.Count; i++) {
+                var t = list[i];
+                if (t.scpSubjects.Any(r => r.roleId == RoleType.Scp079) || Plugin079
+                    .ClearCassieMessage(t.announcement).Contains("all scpsubjects have been secured"))
                     continue;
-                death.announcement +=
-                    Plugin079.CassieGlitchJam(
-                        " . . all scpsubjects have been secured . scp 0 7 9 recontainment procedure commencing . heavy containment zone overcharge in . tminus 1 minute",
-                        0.05f, 0.05f);
+                var newPart = Plugin079.CassieGlitchJam(
+                    " . . all scpsubjects have been secured . scp 0 7 9 recontainment procedure commencing . heavy containment zone overcharge in . tminus 1 minute",
+                    0.03f, 0.03f);
+                Plugin079.DelayDuration =
+                    Cassie.CalculateDuration(newPart) + 69; //not perfect but funny number haha lol xd
+                deaths[i] = new NineTailedFoxAnnouncer.ScpDeath {
+                    scpSubjects = t.scpSubjects,
+                    announcement = t.announcement + newPart
+                };
+                Plugin079.DelayStopwatch.Restart();
                 var recontainer = Object.FindObjectOfType<Recontainer079>();
                 recontainer.Set("_activationDelay", -1);
                 recontainer.Get<Stopwatch>("_delayStopwatch").Stop();
-                Plugin079.OneMinuteStopwatch.Restart();
+                recontainer.Get<Stopwatch>("_unlockStopwatch").Stop();
+                var glass = recontainer.Get<BreakableWindow>("_activatorGlass");
+                glass.Call("ServerDamageWindow", glass.health);
             }
 
             return true;
