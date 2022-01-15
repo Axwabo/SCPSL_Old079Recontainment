@@ -9,6 +9,7 @@ using MapEvents = Exiled.Events.Handlers.Map;
 namespace Old079Recontainment {
     public class Plugin079 : Plugin<Config079> {
         public static Plugin079 Singleton { get; private set; }
+        internal static Config079 Cfg => Singleton.Config;
         private Harmony _harmony;
 
         public Plugin079() {
