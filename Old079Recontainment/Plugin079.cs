@@ -31,6 +31,7 @@ namespace Old079Recontainment {
 
         public override void OnDisabled() {
             base.OnDisabled();
+            MapEvents.Generated -= EventHandlers.MapGenerated;
             _harmony.UnpatchAll();
         }
 
