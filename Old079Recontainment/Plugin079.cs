@@ -6,14 +6,14 @@ using System.Text.RegularExpressions;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
-using MapEvents = Exiled.Events.Handlers.Map;
 
 namespace Old079Recontainment {
     public class Plugin079 : Plugin<Config079> {
         public static Plugin079 Singleton { get; private set; }
         internal static Config079 Cfg => Singleton.Config;
         private Harmony _harmony;
-        internal static readonly Stopwatch OneMinuteStopwatch = new Stopwatch();
+        internal static readonly Stopwatch DelayStopwatch = new Stopwatch();
+        internal static float DelayDuration = 80f;
 
         public Plugin079() {
             Singleton = this;
@@ -29,13 +29,13 @@ namespace Old079Recontainment {
                 return;
             }
 
-            MapEvents.Generated += EventHandlers.MapGenerated;
-            Log.Info("Old SCP-079 recontainment enabled.");
+            Exiled.Events.Handlers.Map.Generated += EventHandlers.MapGenerated;
+            Log.Info($"Config: Extra Generators: {Config.ExtraGenerators}; Auto Recontain: {Config.AutoRecontain}");
         }
 
         public override void OnDisabled() {
             base.OnDisabled();
-            MapEvents.Generated -= EventHandlers.MapGenerated;
+            Exiled.Events.Handlers.Map.Generated -= EventHandlers.MapGenerated;
             _harmony.UnpatchAll();
         }
 
@@ -43,7 +43,9 @@ namespace Old079Recontainment {
         public override string Author { get; } = "Axwabo";
         public override PluginPriority Priority { get; } = PluginPriority.Highest;
         public override Version Version { get; } = new Version(1, 0, 0, 0);
-        public override Version RequiredExiledVersion { get; } = new Version(4, 2);
+        public override Version RequiredExiledVersion { get; } = new Version(4, 0);
+
+        private static readonly Regex CassieSilenceRegex = new Regex("([^A-z0-9._])");
 
         public static string CassieGlitchJam(string message, float glitchChance, float jamChance,
             bool skipSilence = true) {
@@ -53,7 +55,7 @@ namespace Old079Recontainment {
             for (var index = 0; index < strArray.Length; ++index) {
                 var s = strArray[index];
                 newWords.Add(s);
-                if (index >= strArray.Length - 1 || s.Equals(".") && skipSilence)
+                if (index >= strArray.Length - 2 || CassieSilenceRegex.Replace(s, "").Equals(".") && skipSilence)
                     continue;
                 if (UnityEngine.Random.value < (double) glitchChance)
                     newWords.Add(".G" + UnityEngine.Random.Range(1, 7));
