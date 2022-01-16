@@ -8,7 +8,7 @@ namespace Old079Recontainment {
     [HarmonyPatch(typeof(Recontainer079), "UpdateStatus")]
     internal static class RecontainerStatusUpdatePatch {
         private static bool Prefix(Recontainer079 __instance, int engagedGenerators) {
-            if (Recontainer079.AllGenerators.Count <= engagedGenerators)
+            if (Recontainer079.AllGenerators.Count <= engagedGenerators || !Plugin079.Any079())
                 return true;
             var original = __instance.Get<string>("_announcementAllActivated");
             if (Plugin079.ClearCassieMessage(original).Contains("scp 0 7 9 recontainment procedure commencing"))

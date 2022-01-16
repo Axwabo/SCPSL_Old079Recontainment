@@ -12,15 +12,12 @@ namespace Old079Recontainment {
         private static bool Prefix() {
             if (!Plugin079.Cfg.AutoRecontain || !Plugin079.Cfg.IsEnabled ||
                 Recontainer079.AllGenerators.All(g => g.Engaged) ||
-                Warhead.Controller != null && Warhead.Controller.detonated)
+                !Plugin079.Any079() || Warhead.Controller != null && Warhead.Controller.detonated)
                 return true;
             var deaths =
                 typeof(NineTailedFoxAnnouncer).StaticGet<List<NineTailedFoxAnnouncer.ScpDeath>>("scpDeaths");
             if (deaths.Count < 1)
                 return true;
-            if (Player.Get(RoleType.Scp079) == null)
-                return true;
-            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
             var list = new List<NineTailedFoxAnnouncer.ScpDeath>(deaths);
             for (var i = 0; i < list.Count; i++) {
                 var t = list[i];

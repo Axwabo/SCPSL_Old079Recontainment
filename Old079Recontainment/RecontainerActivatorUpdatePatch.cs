@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Axwabo.Util;
+using Exiled.API.Features;
 using HarmonyLib;
 
 namespace Old079Recontainment {
@@ -8,7 +9,7 @@ namespace Old079Recontainment {
         private static bool Prefix(Recontainer079 __instance) {
             if (!Plugin079.Cfg.AutoRecontain || !Plugin079.Cfg.IsEnabled ||
                 __instance.Get<bool>("_alreadyRecontained") ||
-                !Plugin079.DelayStopwatch.IsRunning)
+                !Plugin079.DelayStopwatch.IsRunning || !Plugin079.Any079())
                 return true;
             if (Plugin079.DelayStopwatch.Elapsed.TotalSeconds < Plugin079.DelayDuration) {
                 __instance.Get<Stopwatch>("_unlockStopwatch").Stop();
