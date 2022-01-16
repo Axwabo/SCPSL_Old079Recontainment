@@ -7,8 +7,8 @@ namespace Old079Recontainment {
     internal static class RecontainerActivatorUpdatePatch {
         private static bool Prefix(Recontainer079 __instance) {
             if (!Plugin079.Cfg.AutoRecontain || !Plugin079.Cfg.IsEnabled ||
-                __instance.Get<bool>("_alreadyRecontained") ||
-                !Plugin079.DelayStopwatch.IsRunning || !Plugin079.Any079())
+                !Plugin079.DelayStopwatch.IsRunning || !Plugin079.Any079 ||
+                __instance.Get<bool>("_alreadyRecontained"))
                 return true;
             if (Plugin079.DelayStopwatch.Elapsed.TotalSeconds < Plugin079.DelayDuration) {
                 __instance.Get<Stopwatch>("_unlockStopwatch").Stop();

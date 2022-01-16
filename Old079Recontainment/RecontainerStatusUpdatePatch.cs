@@ -1,21 +1,20 @@
 ﻿using System.Diagnostics;
 using Axwabo.Util;
-using Exiled.API.Features;
 using HarmonyLib;
 
 namespace Old079Recontainment {
     [HarmonyPatch(typeof(Recontainer079), "UpdateStatus")]
     internal static class RecontainerStatusUpdatePatch {
         private static bool Prefix(Recontainer079 __instance, int engagedGenerators) {
-            if (Recontainer079.AllGenerators.Count <= engagedGenerators || !Plugin079.Any079())
+            if (Recontainer079.AllGenerators.Count <= engagedGenerators || !Plugin079.Any079)
                 return true;
             var original = __instance.Get<string>("_announcementAllActivated");
-            if (Plugin079.ClearCassieMessage(original).Contains("scp 0 7 9 recontainment procedure commencing"))
+            if (CassieHelper.RemoveNoise(original).Contains("scp 0 7 9 recontainment procedure commencing"))
                 return true;
-            var newPart = Plugin079.CassieGlitchJam(
+            var newPart = CassieHelper.AddGlitchesAndJams(
                 " . scp 0 7 9 recontainment procedure commencing . heavy containment zone overcharge in tminus . 1 minute",
                 0.03f, 0.03f);
-            Plugin079.DelayDuration = Cassie.CalculateDuration(newPart) + 69; //not perfect but funny number haha lol xd
+            Plugin079.DelayDuration = CassieHelper.CalculateDuration(newPart) + 69; //not perfect but funny number haha lol xd
             __instance.Set("_announcementAllActivated", original + newPart);
             return true;
         }
