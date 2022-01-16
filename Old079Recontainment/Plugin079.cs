@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Axwabo.Util;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
-using MEC;
 using PlayerStatsSystem;
 using Object = UnityEngine.Object;
 
@@ -50,47 +47,21 @@ namespace Old079Recontainment {
         public override Version Version { get; } = new Version(1, 0, 0, 0);
         public override Version RequiredExiledVersion { get; } = new Version(4, 0);
 
-        private static readonly Regex CassieSilenceRegex = new Regex("([^A-z0-9._ ])");
+        public static bool Any079 =>
+            ReferenceHub.GetAllHubs().Values.Any(hub => hub.characterClassManager.Scp079.iAm079);
 
-        public static string CassieGlitchJam(string message, float glitchChance, float jamChance,
-            bool skipSilence = true) {
-            var strArray = message.Split(' ');
-            var newWords = new List<string>();
-            newWords.EnsureCapacity(strArray.Length);
-            for (var index = 0; index < strArray.Length; ++index) {
-                var s = strArray[index];
-                newWords.Add(s);
-                if (index >= strArray.Length - 2 || CassieSilenceRegex.Replace(s, "").Equals(".") && skipSilence)
-                    continue;
-                if (UnityEngine.Random.value < (double) glitchChance)
-                    newWords.Add(".G" + UnityEngine.Random.Range(1, 7));
-                if (UnityEngine.Random.value < (double) jamChance)
-                    newWords.Add("JAM_" + UnityEngine.Random.Range(0, 70).ToString("000") + "_" +
-                                 UnityEngine.Random.Range(2, 6));
-            }
-
-            return newWords.Aggregate("", (current, newWord) => current + newWord + " ");
-        }
-
-        private static readonly Regex CassieNoiseRegex = new Regex("(jam_[0-9][0-9][0-9]_[0-9]|.g[0-9])( ?)");
-
-        public static string ClearCassieMessage(string s) {
-            return CassieNoiseRegex.Replace(s.ToLower(), "");
-        }
-
-        public static bool Any079() {
-            return ReferenceHub.GetAllHubs().Values.Any(hub => hub.characterClassManager.Scp079.iAm079);
-        }
-
-        internal static void PrepareOvercharge(float duration) {
+        internal static bool PrepareOvercharge(float duration) {
+            var recontainer = Object.FindObjectOfType<Recontainer079>();
+            if (recontainer == null)
+                return false;
             DelayDuration = duration;
             DelayStopwatch.Restart();
-            var recontainer = Object.FindObjectOfType<Recontainer079>();
             recontainer.Set("_activationDelay", -1);
             recontainer.Get<Stopwatch>("_delayStopwatch").Stop();
             recontainer.Get<Stopwatch>("_unlockStopwatch").Stop();
             var glass = recontainer.Get<BreakableWindow>("_activatorGlass");
             glass.Call("ServerDamageWindow", glass.health);
+            return true;
         }
 
         public static bool CheckRecontainer(Func<Recontainer079, bool> func) {
@@ -98,21 +69,6 @@ namespace Old079Recontainment {
             return o != null && func(o);
         }
 
-        private static IEnumerator<float> Update() {
-            try {
-                if (Cfg.InfinitePower && DelayStopwatch.IsRunning)
-                    foreach (var script in ReferenceHub.GetAllHubs().Values
-                        .Where(hub =>
-                            hub != ReferenceHub.HostHub && hub != ReferenceHub.LocalHub &&
-                            hub.characterClassManager.Scp079.iAm079)
-                        .Select(hub => hub.characterClassManager.Scp079))
-                        script.Network_curMana = Math.Min(script.levels[script.Network_curLvl].maxMana,
-                            script.NetworkmaxMana + Cfg.PowerPerSecond);
-            } catch (Exception) {
-                // ignored
-            }
-
-            yield return Timing.WaitForSeconds(1);
-        }
+        public static bool Recontained => CheckRecontainer(e => e.Get<bool>("_alreadyRecontained"));
     }
 }
