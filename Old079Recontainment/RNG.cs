@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-// ReSharper disable once CheckNamespace
 namespace Axwabo.Util {
     public static class RNG {
         private static readonly Random TheRandom = new Random();

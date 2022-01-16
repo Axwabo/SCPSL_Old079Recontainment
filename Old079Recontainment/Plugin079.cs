@@ -72,5 +72,9 @@ namespace Old079Recontainment {
         public static string ClearCassieMessage(string s) {
             return CassieNoiseRegex.Replace(s.ToLower(), "");
         }
+
+        public static bool Any079() {
+            return ReferenceHub.GetAllHubs().Values.Any(hub => hub.characterClassManager.Scp079.iAm079);
+        }
     }
 }
