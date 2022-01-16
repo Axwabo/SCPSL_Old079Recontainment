@@ -26,7 +26,6 @@ namespace Old079Recontainment {
         public override void OnEnabled() {
             base.OnEnabled();
             _harmony = new Harmony("mc.axwabo.old079");
-            Timing.RunCoroutine(Update(), "mc.axwabo.079");
             try {
                 _harmony.PatchAll();
             } catch (Exception e) {
@@ -41,7 +40,6 @@ namespace Old079Recontainment {
 
         public override void OnDisabled() {
             base.OnDisabled();
-            Timing.KillCoroutines("mc.axwabo.079");
             Exiled.Events.Handlers.Map.Generated -= EventHandlers.MapGenerated;
             _harmony.UnpatchAll();
         }
