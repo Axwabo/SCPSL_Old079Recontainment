@@ -12,5 +12,11 @@ namespace Old079Recontainment {
         [Description(
             "If SCP-079 should be recontained after all generators are engaged, without someone having to press the button.")]
         public bool AutoRecontain { get; set; } = true;
+
+        [Description("If SCP-079 should gain a lot of power before the overcharge happens.")]
+        public bool InfinitePower { get; set; } = true;
+
+        [Description("AP/second if InfinitePower is enabled")]
+        public int PowerPerSecond { get; set; } = 20;
     }
 }

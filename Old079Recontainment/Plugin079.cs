@@ -7,6 +7,7 @@ using Axwabo.Util;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
+using MEC;
 using PlayerStatsSystem;
 using Object = UnityEngine.Object;
 
@@ -25,6 +26,7 @@ namespace Old079Recontainment {
         public override void OnEnabled() {
             base.OnEnabled();
             _harmony = new Harmony("mc.axwabo.old079");
+            Timing.RunCoroutine(Update(), "mc.axwabo.079");
             try {
                 _harmony.PatchAll();
             } catch (Exception e) {
@@ -39,6 +41,7 @@ namespace Old079Recontainment {
 
         public override void OnDisabled() {
             base.OnDisabled();
+            Timing.KillCoroutines("mc.axwabo.079");
             Exiled.Events.Handlers.Map.Generated -= EventHandlers.MapGenerated;
             _harmony.UnpatchAll();
         }
@@ -84,7 +87,7 @@ namespace Old079Recontainment {
         internal static void PrepareOvercharge(float duration) {
             DelayDuration = duration;
             DelayStopwatch.Restart();
-            var recontainer = UnityEngine.Object.FindObjectOfType<Recontainer079>();
+            var recontainer = Object.FindObjectOfType<Recontainer079>();
             recontainer.Set("_activationDelay", -1);
             recontainer.Get<Stopwatch>("_delayStopwatch").Stop();
             recontainer.Get<Stopwatch>("_unlockStopwatch").Stop();
@@ -95,6 +98,23 @@ namespace Old079Recontainment {
         public static bool CheckRecontainer(Func<Recontainer079, bool> func) {
             var o = Object.FindObjectOfType<Recontainer079>();
             return o != null && func(o);
+        }
+
+        private static IEnumerator<float> Update() {
+            try {
+                if (Cfg.InfinitePower && DelayStopwatch.IsRunning)
+                    foreach (var script in ReferenceHub.GetAllHubs().Values
+                        .Where(hub =>
+                            hub != ReferenceHub.HostHub && hub != ReferenceHub.LocalHub &&
+                            hub.characterClassManager.Scp079.iAm079)
+                        .Select(hub => hub.characterClassManager.Scp079))
+                        script.Network_curMana = Math.Min(script.levels[script.Network_curLvl].maxMana,
+                            script.NetworkmaxMana + Cfg.PowerPerSecond);
+            } catch (Exception) {
+                // ignored
+            }
+
+            yield return Timing.WaitForSeconds(1);
         }
     }
 }
