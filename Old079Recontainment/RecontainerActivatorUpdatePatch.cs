@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Axwabo.Util;
-using Exiled.API.Features;
 using HarmonyLib;
 
 namespace Old079Recontainment {

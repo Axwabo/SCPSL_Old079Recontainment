@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using Axwabo.Util;
+using Exiled.API.Features;
 using MapGeneration.Distributors;
+using PlayerStatsSystem;
 using UnityEngine;
 
 namespace Old079Recontainment {
@@ -27,6 +29,17 @@ namespace Old079Recontainment {
             recontainer.Set("_activationDelay", -1);
             var glass = recontainer.Get<BreakableWindow>("_activatorGlass");
             glass.Call("ServerDamageWindow", glass.health);
+        }
+
+        public static void PlayerDied(ReferenceHub hub, DamageHandlerBase damage) {
+            if (hub.characterClassManager.IsAnyScp() && !hub.characterClassManager.Scp079.iAm079 &&
+                Plugin079.Any079() && ReferenceHub.GetAllHubs().Values.All(e =>
+                    (!e.characterClassManager.IsAnyScp() || e.characterClassManager.Scp079.iAm079) && e != hub) &&
+                !NineTailedFoxAnnouncer.singleton.queue.Any(e =>
+                    Plugin079.ClearCassieMessage(e.collection).StartsWith("$$$ all scpsubjects have been secured")))
+                Cassie.DelayedGlitchyMessage(
+                    "$$$ all scpsubjects have been secured . scp 0 7 9 recontainment procedure commencing . heavy containment zone overcharge in tminus 1 minute",
+                    0, 0.035f, 0.03f);
         }
     }
 }
