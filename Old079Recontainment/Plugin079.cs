@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Axwabo.Util;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
+using PlayerStatsSystem;
+using Object = UnityEngine.Object;
 
 namespace Old079Recontainment {
     public class Plugin079 : Plugin<Config079> {
@@ -30,6 +33,7 @@ namespace Old079Recontainment {
             }
 
             Exiled.Events.Handlers.Map.Generated += EventHandlers.MapGenerated;
+            PlayerStats.OnAnyPlayerDied += EventHandlers.PlayerDied;
             Log.Info($"Config: Extra Generators: {Config.ExtraGenerators}; Auto Recontain: {Config.AutoRecontain}");
         }
 
@@ -45,7 +49,7 @@ namespace Old079Recontainment {
         public override Version Version { get; } = new Version(1, 0, 0, 0);
         public override Version RequiredExiledVersion { get; } = new Version(4, 0);
 
-        private static readonly Regex CassieSilenceRegex = new Regex("([^A-z0-9._])");
+        private static readonly Regex CassieSilenceRegex = new Regex("([^A-z0-9._ ])");
 
         public static string CassieGlitchJam(string message, float glitchChance, float jamChance,
             bool skipSilence = true) {
@@ -75,6 +79,22 @@ namespace Old079Recontainment {
 
         public static bool Any079() {
             return ReferenceHub.GetAllHubs().Values.Any(hub => hub.characterClassManager.Scp079.iAm079);
+        }
+
+        internal static void PrepareOvercharge(float duration) {
+            DelayDuration = duration;
+            DelayStopwatch.Restart();
+            var recontainer = UnityEngine.Object.FindObjectOfType<Recontainer079>();
+            recontainer.Set("_activationDelay", -1);
+            recontainer.Get<Stopwatch>("_delayStopwatch").Stop();
+            recontainer.Get<Stopwatch>("_unlockStopwatch").Stop();
+            var glass = recontainer.Get<BreakableWindow>("_activatorGlass");
+            glass.Call("ServerDamageWindow", glass.health);
+        }
+
+        public static bool CheckRecontainer(Func<Recontainer079, bool> func) {
+            var o = Object.FindObjectOfType<Recontainer079>();
+            return o != null && func(o);
         }
     }
 }
